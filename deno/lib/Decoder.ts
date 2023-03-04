@@ -1,9 +1,23 @@
-import { ETF_VERSION, SMALL_INTEGER_EXT } from "./Constants.ts";
+import {
+  ATOM_EXT,
+  ATOM_UTF8_EXT,
+  AtomTerms,
+  ETF_VERSION,
+  FLOAT_EXT,
+  INTEGER_EXT,
+  PORT_EXT,
+  SMALL_ATOM_EXT,
+  SMALL_ATOM_UTF8_EXT,
+  SMALL_INTEGER_EXT,
+} from "./Constants.ts";
+import { Atom, AtomType } from "./Structs/Atom.ts";
+import { Port } from "./Structs/Port.ts";
 
 export class Decoder {
   private buffer = new Uint8Array(0);
   private view = new DataView(this.buffer.buffer);
   private offset = 0;
+  private readonly textDecoder = new TextDecoder();
 
   /**
    * Decodes data.
@@ -29,9 +43,64 @@ export class Decoder {
     switch (term) {
       case SMALL_INTEGER_EXT:
         return this.readUInt8();
+      case INTEGER_EXT:
+        return this.readInt32();
+      case FLOAT_EXT:
+        return parseFloat(this.readString(31));
+      case PORT_EXT:
+        return this.readPort();
       default:
         throw new Error(`Unsupported term: ${term}`);
     }
+  }
+
+  private readPort() {
+    const atomTerm = this.readUInt8();
+    const node = this.detectAtom(atomTerm as AtomTerms);
+    const id = this.readUInt32();
+    const creation = this.readUInt8();
+    return new Port(node, id, creation);
+  }
+
+  private readString(length: number) {
+    const value = this.textDecoder.decode(
+      this.buffer.slice(this.offset, this.offset + length),
+    );
+    this.offset += length;
+    return value;
+  }
+
+  private detectAtom(term: AtomTerms) {
+    if (term === ATOM_UTF8_EXT) {
+      return this.readUTF8Atom();
+    } else if (term === SMALL_ATOM_UTF8_EXT) {
+      return this.readSmallUTF8Atom();
+    } else if (term === ATOM_EXT) {
+      return this.readAtom();
+    } else if (term === SMALL_ATOM_EXT) {
+      return this.readSmallAtom();
+    }
+    throw new Error(`Unsupported term: ${term}`);
+  }
+
+  private readUTF8Atom() {
+    const length = this.readUInt16();
+    return new Atom(this.readString(length), AtomType.ATOM_UTF8);
+  }
+
+  private readSmallUTF8Atom() {
+    const length = this.readUInt8();
+    return new Atom(this.readString(length), AtomType.SMALL_ATOM_UTF8);
+  }
+
+  private readAtom() {
+    const length = this.readUInt16();
+    return new Atom(this.readString(length), AtomType.ATOM);
+  }
+
+  private readSmallAtom() {
+    const length = this.readUInt8();
+    return new Atom(this.readString(length), AtomType.SMALL_ATOM);
   }
 
   private reset() {
