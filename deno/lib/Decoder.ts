@@ -29,6 +29,8 @@ export class Decoder {
     switch (term) {
       case SMALL_INTEGER_EXT:
         return this.readUInt8();
+      default:
+        throw new Error(`Unsupported term: ${term}`);
     }
   }
 
