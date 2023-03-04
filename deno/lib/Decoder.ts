@@ -5,13 +5,15 @@ import {
   ETF_VERSION,
   FLOAT_EXT,
   INTEGER_EXT,
+  NEW_PORT_EXT,
   PORT_EXT,
   SMALL_ATOM_EXT,
   SMALL_ATOM_UTF8_EXT,
   SMALL_INTEGER_EXT,
+  V4_PORT_EXT,
 } from "./Constants.ts";
 import { Atom, AtomTerm } from "./Structs/Atom.ts";
-import { Port } from "./Structs/Port.ts";
+import { Port, PortTerm } from "./Structs/Port.ts";
 
 export class Decoder {
   private buffer = new Uint8Array(0);
@@ -48,18 +50,38 @@ export class Decoder {
       case FLOAT_EXT:
         return parseFloat(this.readString(31));
       case PORT_EXT:
-        return this.readPort();
+        return this.readPortExt();
+      case NEW_PORT_EXT:
+        return this.readNewPortExt();
+      case V4_PORT_EXT:
+        return this.readV4PortExt();
       default:
         throw new Error(`Unsupported term: ${term}`);
     }
   }
 
-  private readPort() {
+  private readPortExt() {
     const atomTerm = this.readUInt8();
     const node = this.detectAtom(atomTerm as AtomTerms);
     const id = this.readUInt32();
     const creation = this.readUInt8();
     return new Port(node, id, creation);
+  }
+
+  private readNewPortExt() {
+    const atomTerm = this.readUInt8();
+    const node = this.detectAtom(atomTerm as AtomTerms);
+    const id = this.readInt32();
+    const creation = this.readInt32();
+    return new Port(node, id, creation, PortTerm.NEW_PORT_EXT);
+  }
+
+  private readV4PortExt() {
+    const atomTerm = this.readUInt8();
+    const node = this.detectAtom(atomTerm as AtomTerms);
+    const id = this.readBigUint64();
+    const creation = this.readInt32();
+    return new Port(node, id, creation, PortTerm.V4_PORT_EXT);
   }
 
   private readString(length: number) {
@@ -72,33 +94,33 @@ export class Decoder {
 
   private detectAtom(term: AtomTerms) {
     if (term === ATOM_UTF8_EXT) {
-      return this.readUTF8Atom();
+      return this.readUTF8AtomExt();
     } else if (term === SMALL_ATOM_UTF8_EXT) {
-      return this.readSmallUTF8Atom();
+      return this.readSmallUTF8AtomExt();
     } else if (term === ATOM_EXT) {
-      return this.readAtom();
+      return this.readAtomExt();
     } else if (term === SMALL_ATOM_EXT) {
-      return this.readSmallAtom();
+      return this.readSmallAtomExt();
     }
     throw new Error(`Unsupported term: ${term}`);
   }
 
-  private readUTF8Atom() {
+  private readUTF8AtomExt() {
     const length = this.readUInt16();
     return new Atom(this.readString(length), AtomTerm.ATOM_UTF8);
   }
 
-  private readSmallUTF8Atom() {
+  private readSmallUTF8AtomExt() {
     const length = this.readUInt8();
     return new Atom(this.readString(length), AtomTerm.SMALL_ATOM_UTF8);
   }
 
-  private readAtom() {
+  private readAtomExt() {
     const length = this.readUInt16();
     return new Atom(this.readString(length), AtomTerm.ATOM);
   }
 
-  private readSmallAtom() {
+  private readSmallAtomExt() {
     const length = this.readUInt8();
     return new Atom(this.readString(length), AtomTerm.SMALL_ATOM);
   }
