@@ -28,3 +28,9 @@ export const ATOM_UTF8_EXT = 118;
 export const SMALL_ATOM_UTF8_EXT = 119;
 export const ATOM_EXT = 100;
 export const SMALL_ATOM_EXT = 115;
+
+export type AtomTerms =
+  | typeof ATOM_EXT
+  | typeof SMALL_ATOM_EXT
+  | typeof ATOM_UTF8_EXT
+  | typeof SMALL_ATOM_UTF8_EXT;
