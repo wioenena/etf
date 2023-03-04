@@ -8,6 +8,7 @@ import {
   assert,
   assertThrows,
 } from "https://deno.land/std@0.178.0/testing/asserts.ts";
+import { Port, PortTerm } from "../lib/Structs/Port.ts";
 
 const __dirname = dirname(fromFileUrl(import.meta.url));
 const encoded_data_dir = join(__dirname, "..", "..", "encoded_data");
@@ -41,16 +42,29 @@ Deno.test("Decoder", async (t) => {
 
   await t.step("decode PORT_EXT", () => {
     const encoded = getEncodedData("PORT_EXT");
-    const decoded = decode(encoded);
+    const decoded = decode(encoded) as Port;
+
     assert(decoded.toString() === "#Port<0.5>");
+    assert(decoded.term === PortTerm.PORT_EXT);
+    assert(decoded.id === 5);
   });
 
   await t.step("decode NEW_PORT_EXT", () => {
-    console.log("TODO: Test NEW_PORT_EXT");
+    const encoded = getEncodedData("NEW_PORT_EXT");
+    const decoded = decode(encoded) as Port;
+
+    assert(decoded.toString() === "#Port<0.5>");
+    assert(decoded.term === PortTerm.NEW_PORT_EXT);
+    assert(decoded.id === 5);
   });
 
   await t.step("decode V4_PORT_EXT", () => {
-    console.log("TODO: Test V4_PORT_EXT");
+    const encoded = getEncodedData("V4_PORT_EXT");
+    const decoded = decode(encoded) as Port;
+
+    assert(decoded.toString() === "#Port<0.5>");
+    assert(decoded.term === PortTerm.V4_PORT_EXT);
+    assert(decoded.id === 5n);
   });
 
   await t.step("decode PID_EXT", () => {
