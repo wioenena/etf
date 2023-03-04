@@ -1,9 +1,11 @@
 # etf
+
 External Term Format encoding and decoding for deno
 
 ### Support encoding and decoding terms
+
 - [ ] ATOM_CACHE_REF
-- [ ] SMALL_INTEGER_EXT
+- [x] SMALL_INTEGER_EXT
 - [ ] INTEGER_EXT
 - [ ] FLOAT_EXT
 - [ ] PORT_EXT
@@ -33,6 +35,7 @@ External Term Format encoding and decoding for deno
 - [ ] SMALL_ATOM_EXT
 
 ### Atoms built for javascript
+
 - [ ] null
 - [ ] undefined
 - [ ] NaN
