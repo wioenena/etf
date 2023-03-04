@@ -6,11 +6,11 @@ External Term Format encoding and decoding for deno
 
 - [ ] ATOM_CACHE_REF
 - [x] SMALL_INTEGER_EXT
-- [ ] INTEGER_EXT
-- [ ] FLOAT_EXT
-- [ ] PORT_EXT
-- [ ] NEW_PORT_EXT
-- [ ] V4_PORT_EXT
+- [x] INTEGER_EXT
+- [x] FLOAT_EXT
+- [x] PORT_EXT
+- [x] NEW_PORT_EXT
+- [x] V4_PORT_EXT
 - [ ] PID_EXT
 - [ ] NEW_PID_EXT
 - [ ] SMALL_TUPLE_EXT
