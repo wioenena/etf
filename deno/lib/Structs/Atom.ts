@@ -1,13 +1,13 @@
 export class Atom {
   public constructor(
     public readonly value: string,
-    public readonly type: AtomType = AtomType.ATOM,
+    public readonly term: AtomTerm = AtomTerm.ATOM,
   ) {
     if (value.length > 255) {
       throw new Error("Atom cannot be longer than 255 characters");
     }
 
-    if (type === AtomType.ATOM || type === AtomType.SMALL_ATOM) {
+    if (term === AtomTerm.ATOM || term === AtomTerm.SMALL_ATOM) {
       for (const char of value) {
         const charCode = char.charCodeAt(0);
         if (charCode > 0x7F || charCode < 0) {
@@ -18,7 +18,7 @@ export class Atom {
   }
 }
 
-export const enum AtomType {
+export const enum AtomTerm {
   ATOM,
   SMALL_ATOM,
   ATOM_UTF8,

@@ -10,7 +10,7 @@ import {
   SMALL_ATOM_UTF8_EXT,
   SMALL_INTEGER_EXT,
 } from "./Constants.ts";
-import { Atom, AtomType } from "./Structs/Atom.ts";
+import { Atom, AtomTerm } from "./Structs/Atom.ts";
 import { Port } from "./Structs/Port.ts";
 
 export class Decoder {
@@ -85,22 +85,22 @@ export class Decoder {
 
   private readUTF8Atom() {
     const length = this.readUInt16();
-    return new Atom(this.readString(length), AtomType.ATOM_UTF8);
+    return new Atom(this.readString(length), AtomTerm.ATOM_UTF8);
   }
 
   private readSmallUTF8Atom() {
     const length = this.readUInt8();
-    return new Atom(this.readString(length), AtomType.SMALL_ATOM_UTF8);
+    return new Atom(this.readString(length), AtomTerm.SMALL_ATOM_UTF8);
   }
 
   private readAtom() {
     const length = this.readUInt16();
-    return new Atom(this.readString(length), AtomType.ATOM);
+    return new Atom(this.readString(length), AtomTerm.ATOM);
   }
 
   private readSmallAtom() {
     const length = this.readUInt8();
-    return new Atom(this.readString(length), AtomType.SMALL_ATOM);
+    return new Atom(this.readString(length), AtomTerm.SMALL_ATOM);
   }
 
   private reset() {
