@@ -1,3 +1,5 @@
+import { ETF_VERSION, SMALL_INTEGER_EXT } from "./Constants.ts";
+
 export class Decoder {
   private buffer = new Uint8Array(0);
   private view = new DataView(this.buffer.buffer);
@@ -11,6 +13,8 @@ export class Decoder {
     this.buffer = data;
     this.view = new DataView(this.buffer.buffer);
     this.offset = 0;
+    const VERSION = this.readUInt8();
+    if (VERSION !== ETF_VERSION) throw new Error("Invalid ETF version");
     const decoded = this.nativeDecode(data);
     this.reset();
     return decoded;
@@ -21,6 +25,11 @@ export class Decoder {
    * @param data Data to decode.
    */
   private nativeDecode(data: Uint8Array) {
+    const term = this.readUInt8();
+    switch (term) {
+      case SMALL_INTEGER_EXT:
+        return this.readUInt8();
+    }
   }
 
   private reset() {
@@ -79,3 +88,5 @@ export class Decoder {
     return value;
   }
 }
+
+export const decode = (data: Uint8Array) => new Decoder().decode(data);
