@@ -8,7 +8,7 @@ import {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.178.0/testing/asserts.ts";
-import { IPort } from "../lib/Structs/types.d.ts";
+import { IPid, IPort, IReference } from "../lib/Structs/types.d.ts";
 
 import { decode } from "../mod.ts";
 
@@ -44,14 +44,14 @@ Deno.test("Decoder", async (t) => {
 
   await t.step("decode PORT_EXT", () => {
     const encoded = getEncodedData("PORT_EXT");
-    const decoded = decode(encoded);
+    const decoded = decode(encoded) as IPort;
 
     assertEquals(decoded.toString(), "#Port<0.5>");
   });
 
   await t.step("decode NEW_PORT_EXT", () => {
     const encoded = getEncodedData("NEW_PORT_EXT");
-    const decoded = decode(encoded);
+    const decoded = decode(encoded) as IPort;
 
     assertEquals(decoded.toString(), "#Port<0.5>");
   });
@@ -66,13 +66,13 @@ Deno.test("Decoder", async (t) => {
 
   await t.step("decode PID_EXT", () => {
     const encoded = getEncodedData("PID_EXT");
-    const decoded = decode(encoded);
+    const decoded = decode(encoded) as IPid;
     assertEquals(decoded.toString(), "#PID<0.106.0>");
   });
 
   await t.step("decode NEW_PID_EXT", () => {
     const encoded = getEncodedData("NEW_PID_EXT");
-    const decoded = decode(encoded);
+    const decoded = decode(encoded) as IPid;
     assertEquals(decoded.toString(), "#PID<0.106.0>");
   });
 
@@ -126,15 +126,23 @@ Deno.test("Decoder", async (t) => {
   });
 
   await t.step("decode REFERENCE_EXT", () => {
-    console.log("TODO: Test REFERENCE_EXT");
+    const encoded = getEncodedData("REFERENCE_EXT");
+    const decoded = decode(encoded) as IReference;
+    assertEquals(decoded.toString(), "#Reference<0.0.0.3>");
   });
 
   await t.step("decode NEW_REFERENCE_EXT", () => {
-    console.log("TODO: Test NEW_REFERENCE_EXT");
+    const encoded = getEncodedData("NEW_REFERENCE_EXT");
+    const decoded = decode(encoded) as IReference;
+
+    assertEquals(decoded.toString(), "#Reference<0.21204790.195297282.152334>");
   });
 
   await t.step("decode NEWER_REFERENCE_EXT", () => {
-    console.log("TODO: Test NEWER_REFERENCE_EXT");
+    const encoded = getEncodedData("NEWER_REFERENCE_EXT");
+    const decoded = decode(encoded) as IReference;
+
+    assertEquals(decoded.toString(), "#Reference<0.21204790.195297282.152334>");
   });
 
   await t.step("decode NEW_FUN_EXT", () => {
