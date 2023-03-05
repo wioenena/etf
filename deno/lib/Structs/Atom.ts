@@ -16,4 +16,8 @@ export class Atom {
       }
     }
   }
+
+  public toString() {
+    return `:${this.value}`;
+  }
 }
