@@ -1,27 +1,38 @@
 import {
   ATOM_EXT,
   ATOM_UTF8_EXT,
-  AtomTerms,
   BINARY_EXT,
+  BIT_BINARY_EXT,
   ETF_VERSION,
+  EXPORT_EXT,
   FLOAT_EXT,
   INTEGER_EXT,
   LARGE_BIG_EXT,
+  LARGE_TUPLE_EXT,
+  LIST_EXT,
+  MAP_EXT,
+  NEW_FLOAT_EXT,
+  NEW_FUN_EXT,
   NEW_PID_EXT,
   NEW_PORT_EXT,
+  NEW_REFERENCE_EXT,
+  NEWER_REFERENCE_EXT,
   NIL_EXT,
   PID_EXT,
   PORT_EXT,
+  REFERENCE_EXT,
   SMALL_ATOM_EXT,
   SMALL_ATOM_UTF8_EXT,
   SMALL_BIG_EXT,
   SMALL_INTEGER_EXT,
+  SMALL_TUPLE_EXT,
   STRING_EXT,
   V4_PORT_EXT,
 } from "./Constants.ts";
-import { Atom, AtomTerm } from "./Structs/Atom.ts";
-import { Pid, PidTerm } from "./Structs/Pid.ts";
-import { Port, PortTerm } from "./Structs/Port.ts";
+import { Atom } from "./Structs/Atom.ts";
+import { IPid, IPort } from "./Structs/types.d.ts";
+
+const NOT_IMPLEMENTED = "Not implemented";
 
 export class Decoder {
   private buffer = new Uint8Array(0);
@@ -39,7 +50,7 @@ export class Decoder {
     this.offset = 0;
     const VERSION = this.readUInt8();
     if (VERSION !== ETF_VERSION) throw new Error("Invalid ETF version");
-    const decoded = this.nativeDecode();
+    const decoded = this.read();
     this.reset();
     return decoded;
   }
@@ -48,7 +59,7 @@ export class Decoder {
    * For recursive calls to decode.
    * @param data Data to decode.
    */
-  private nativeDecode() {
+  private read(): string | number | bigint | Atom | IPort | IPid | unknown[] {
     const term = this.readUInt8();
 
     switch (term) {
@@ -59,21 +70,52 @@ export class Decoder {
       case FLOAT_EXT:
         return parseFloat(this.readString(31));
       case PORT_EXT:
-        return this.readPortExt();
       case NEW_PORT_EXT:
-        return this.readNewPortExt();
-      case V4_PORT_EXT:
-        return this.readV4PortExt();
+      case V4_PORT_EXT: {
+        const isPortExt = term === PORT_EXT;
+        const isNewPortExt = term === NEW_PORT_EXT;
+        const node = this.read() as Atom;
+        const id = (isPortExt || isNewPortExt)
+          ? this.readUInt32()
+          : this.readBigUint64();
+        const creation = (isPortExt) ? this.readUInt8() : this.readUInt32();
+
+        return {
+          node,
+          id,
+          creation,
+          toString: () => `#Port<${creation}.${id}>`,
+        };
+      }
       case PID_EXT:
-        return this.readPidExt();
-      case NEW_PID_EXT:
-        return this.readNewPidExt();
+      case NEW_PID_EXT: {
+        const isNewPid = term === NEW_PID_EXT;
+        const node = this.read() as Atom;
+        const id = this.readUInt32();
+        const serial = this.readUInt32();
+        const creation = isNewPid ? this.readUInt32() : this.readUInt8();
+
+        return {
+          node,
+          id,
+          serial,
+          creation,
+          toString: () => `#PID<${creation}.${id}.${serial}>`,
+        };
+      }
+      case SMALL_TUPLE_EXT:
+      case LARGE_TUPLE_EXT:
+        return NOT_IMPLEMENTED;
+      case MAP_EXT:
+        return NOT_IMPLEMENTED;
       case NIL_EXT:
         return [];
       case STRING_EXT: {
         const length = this.readUInt16();
         return this.readString(length);
       }
+      case LIST_EXT:
+        return NOT_IMPLEMENTED;
       case BINARY_EXT: {
         const length = this.readUInt32();
         return this.readString(length);
@@ -92,52 +134,32 @@ export class Decoder {
 
         return sign === 0 ? value : -value;
       }
+      case REFERENCE_EXT:
+      case NEW_REFERENCE_EXT:
+      case NEWER_REFERENCE_EXT:
+        return NOT_IMPLEMENTED;
+      case NEW_FUN_EXT:
+        return NOT_IMPLEMENTED;
+      case EXPORT_EXT:
+        return NOT_IMPLEMENTED;
+      case BIT_BINARY_EXT:
+        return NOT_IMPLEMENTED;
+      case NEW_FLOAT_EXT:
+        return NOT_IMPLEMENTED;
+      case ATOM_UTF8_EXT:
+      case SMALL_ATOM_UTF8_EXT:
+      case ATOM_EXT:
+      case SMALL_ATOM_EXT: {
+        const isAnySmallAtom = term === SMALL_ATOM_UTF8_EXT ||
+          term === SMALL_ATOM_EXT;
+        const isUTF8 = term === ATOM_UTF8_EXT || term === SMALL_ATOM_UTF8_EXT;
+        const length = (isAnySmallAtom) ? this.readUInt8() : this.readUInt16();
+        return new Atom(this.readString(length), isUTF8);
+      }
 
       default:
         throw new Error(`Unsupported term: ${term}`);
     }
-  }
-
-  private readPortExt() {
-    const atomTerm = this.readUInt8();
-    const node = this.detectAtom(atomTerm as AtomTerms);
-    const id = this.readUInt32();
-    const creation = this.readUInt8();
-    return new Port(node, id, creation);
-  }
-
-  private readNewPortExt() {
-    const atomTerm = this.readUInt8();
-    const node = this.detectAtom(atomTerm as AtomTerms);
-    const id = this.readInt32();
-    const creation = this.readInt32();
-    return new Port(node, id, creation, PortTerm.NEW_PORT_EXT);
-  }
-
-  private readV4PortExt() {
-    const atomTerm = this.readUInt8();
-    const node = this.detectAtom(atomTerm as AtomTerms);
-    const id = this.readBigUint64();
-    const creation = this.readInt32();
-    return new Port(node, id, creation, PortTerm.V4_PORT_EXT);
-  }
-
-  private readPidExt() {
-    const atomTerm = this.readUInt8();
-    const node = this.detectAtom(atomTerm as AtomTerms);
-    const id = this.readUInt32();
-    const serial = this.readUInt32();
-    const creation = this.readUInt8();
-    return new Pid(node, id, serial, creation);
-  }
-
-  private readNewPidExt() {
-    const atomTerm = this.readUInt8();
-    const node = this.detectAtom(atomTerm as AtomTerms);
-    const id = this.readUInt32();
-    const serial = this.readUInt32();
-    const creation = this.readUInt32();
-    return new Pid(node, id, serial, creation, PidTerm.NEW_PID_EXT);
   }
 
   private readString(length: number) {
@@ -146,39 +168,6 @@ export class Decoder {
     );
     this.offset += length;
     return value;
-  }
-
-  private detectAtom(term: AtomTerms) {
-    if (term === ATOM_UTF8_EXT) {
-      return this.readUTF8AtomExt();
-    } else if (term === SMALL_ATOM_UTF8_EXT) {
-      return this.readSmallUTF8AtomExt();
-    } else if (term === ATOM_EXT) {
-      return this.readAtomExt();
-    } else if (term === SMALL_ATOM_EXT) {
-      return this.readSmallAtomExt();
-    }
-    throw new Error(`Unsupported term: ${term}`);
-  }
-
-  private readUTF8AtomExt() {
-    const length = this.readUInt16();
-    return new Atom(this.readString(length), AtomTerm.ATOM_UTF8_EXT);
-  }
-
-  private readSmallUTF8AtomExt() {
-    const length = this.readUInt8();
-    return new Atom(this.readString(length), AtomTerm.SMALL_ATOM_UTF8_EXT);
-  }
-
-  private readAtomExt() {
-    const length = this.readUInt16();
-    return new Atom(this.readString(length), AtomTerm.ATOM_EXT);
-  }
-
-  private readSmallAtomExt() {
-    const length = this.readUInt8();
-    return new Atom(this.readString(length), AtomTerm.SMALL_ATOM_EXT);
   }
 
   private reset() {
