@@ -22,3 +22,22 @@ export interface IReference extends IToString {
   id: number | number[];
   creation: number;
 }
+
+export interface INewFun extends IToString {
+  size: number;
+  arity: number;
+  uniq: string;
+  index: number;
+  numFree: number;
+  module: Atom;
+  oldIndex: number;
+  oldUniq: number;
+  pid: IPid;
+  freeVars: unknown[];
+}
+
+export interface IExport extends IToString {
+  module: Atom;
+  func: Atom;
+  arity: number;
+}
