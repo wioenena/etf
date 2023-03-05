@@ -93,7 +93,9 @@ Deno.test("Decoder", async (t) => {
   });
 
   await t.step("decode NIL_EXT", () => {
-    console.log("TODO: Test NIL_EXT");
+    const encoded = getEncodedData("NIL_EXT");
+    const decoded = decode(encoded) as never[];
+    assert(decoded.length === 0 && Array.isArray(decoded));
   });
 
   await t.step("decode STRING_EXT", () => {
