@@ -30,7 +30,7 @@ import {
   V4_PORT_EXT,
 } from "./Constants.ts";
 import { Atom } from "./Structs/Atom.ts";
-import { IPid, IPort } from "./Structs/types.d.ts";
+import { IPid, IPort, IReference } from "./Structs/types.d.ts";
 
 const NOT_IMPLEMENTED = "Not implemented";
 
@@ -59,7 +59,7 @@ export class Decoder {
    * For recursive calls to decode.
    * @param data Data to decode.
    */
-  private read(): string | number | bigint | Atom | IPort | IPid | unknown[] {
+  private read(): DecodedData {
     const term = this.readUInt8();
 
     switch (term) {
@@ -85,7 +85,7 @@ export class Decoder {
           id,
           creation,
           toString: () => `#Port<${creation}.${id}>`,
-        };
+        } as IPort;
       }
       case PID_EXT:
       case NEW_PID_EXT: {
@@ -101,7 +101,7 @@ export class Decoder {
           serial,
           creation,
           toString: () => `#PID<${creation}.${id}.${serial}>`,
-        };
+        } as IPid;
       }
       case SMALL_TUPLE_EXT:
       case LARGE_TUPLE_EXT:
@@ -136,8 +136,32 @@ export class Decoder {
       }
       case REFERENCE_EXT:
       case NEW_REFERENCE_EXT:
-      case NEWER_REFERENCE_EXT:
-        return NOT_IMPLEMENTED;
+      case NEWER_REFERENCE_EXT: {
+        if (term === REFERENCE_EXT) {
+          const node = this.read() as Atom;
+          const id = this.readUInt32();
+          const creation = this.readUInt8();
+          return {
+            node,
+            id,
+            creation,
+            toString: () => `#Reference<${creation}.0.0.${id}>`,
+          } as IReference;
+        } else {
+          const length = this.readUInt16();
+          const node = this.read() as Atom;
+          const creation = term === NEWER_REFERENCE_EXT
+            ? this.readUInt32()
+            : this.readUInt8();
+          const ids = Array.from({ length }, () => this.readUInt32()).reverse();
+          return {
+            node,
+            id: ids,
+            creation,
+            toString: () => `#Reference<${creation}.${ids.join(".")}>`,
+          } as IReference;
+        }
+      }
       case NEW_FUN_EXT:
         return NOT_IMPLEMENTED;
       case EXPORT_EXT:
@@ -228,3 +252,17 @@ export class Decoder {
 }
 
 export const decode = (data: Uint8Array) => new Decoder().decode(data);
+
+export type DecodedData =
+  | string
+  | number
+  | bigint
+  | boolean
+  | unknown[]
+  | Record<PropertyKey, unknown>
+  | null
+  | undefined
+  | Atom
+  | IPort
+  | IPid
+  | IReference;
