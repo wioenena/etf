@@ -7,6 +7,7 @@ import {
   INTEGER_EXT,
   NEW_PID_EXT,
   NEW_PORT_EXT,
+  NIL_EXT,
   PID_EXT,
   PORT_EXT,
   SMALL_ATOM_EXT,
@@ -62,6 +63,9 @@ export class Decoder {
         return this.readPidExt();
       case NEW_PID_EXT:
         return this.readNewPidExt();
+      case NIL_EXT:
+        return [];
+
       default:
         throw new Error(`Unsupported term: ${term}`);
     }
