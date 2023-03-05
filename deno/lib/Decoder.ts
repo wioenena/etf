@@ -13,6 +13,7 @@ import {
   SMALL_ATOM_EXT,
   SMALL_ATOM_UTF8_EXT,
   SMALL_INTEGER_EXT,
+  STRING_EXT,
   V4_PORT_EXT,
 } from "./Constants.ts";
 import { Atom, AtomTerm } from "./Structs/Atom.ts";
@@ -65,7 +66,10 @@ export class Decoder {
         return this.readNewPidExt();
       case NIL_EXT:
         return [];
-
+      case STRING_EXT: {
+        const length = this.readUInt16();
+        return this.readString(length);
+      }
       default:
         throw new Error(`Unsupported term: ${term}`);
     }
