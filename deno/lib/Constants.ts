@@ -352,9 +352,3 @@ export const ATOM_EXT = 100;
  * @see {@link https://www.erlang.org/doc/apps/erts/erl_ext_dist.html#small_atom_ext} For more information
  */
 export const SMALL_ATOM_EXT = 115;
-
-export type AtomTerms =
-  | typeof ATOM_EXT
-  | typeof SMALL_ATOM_EXT
-  | typeof ATOM_UTF8_EXT
-  | typeof SMALL_ATOM_UTF8_EXT;
