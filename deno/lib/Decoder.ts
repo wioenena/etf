@@ -119,8 +119,15 @@ export class Decoder {
       case ATOM_UTF8_EXT:
       case SMALL_ATOM_UTF8_EXT:
       case ATOM_EXT:
-      case SMALL_ATOM_EXT:
-        return this.readAnyAtom(term);
+      case SMALL_ATOM_EXT: {
+        const atom = this.readAnyAtom(term);
+        if (atom === "nil" || atom === "null") return null;
+        else if (atom === "undefined") return undefined;
+        else if (atom === "true" || atom === "false") return atom === "true";
+        else if (atom === "NaN") return NaN;
+        else if (atom === "Infinity") return Infinity;
+        return atom;
+      }
       default:
         throw new Error(`Unsupported term: ${term}`);
     }
@@ -129,7 +136,7 @@ export class Decoder {
   private readAnyPort(term: AnyPort) {
     const isPortExt = term === PORT_EXT;
     const isNewPortExt = term === NEW_PORT_EXT;
-    const node = this.read() as Atom;
+    const node = this.read();
     const id = (isPortExt || isNewPortExt)
       ? this.readUInt32()
       : this.readBigUint64();
@@ -145,7 +152,7 @@ export class Decoder {
 
   private readAnyPid(term: AnyPid) {
     const isNewPid = term === NEW_PID_EXT;
-    const node = this.read() as Atom;
+    const node = this.read();
     const id = this.readUInt32();
     const serial = this.readUInt32();
     const creation = isNewPid ? this.readUInt32() : this.readUInt8();
@@ -206,7 +213,7 @@ export class Decoder {
 
   readAnyReference(term: AnyReference) {
     if (term === REFERENCE_EXT) {
-      const node = this.read() as Atom;
+      const node = this.read();
       const id = this.readUInt32();
       const creation = this.readUInt8();
       return {
@@ -217,7 +224,7 @@ export class Decoder {
       } as IReference;
     } else {
       const length = this.readUInt16();
-      const node = this.read() as Atom;
+      const node = this.read();
       const creation = term === NEWER_REFERENCE_EXT
         ? this.readUInt32()
         : this.readUInt8();
@@ -240,7 +247,7 @@ export class Decoder {
     ).join("");
     const index = this.readUInt32();
     const numFree = this.readUInt32();
-    const module = this.read() as Atom;
+    const module = this.read();
     const oldIndex = this.read() as number;
     const oldUniq = this.read() as number;
     const pid = this.read() as IPid;
@@ -262,14 +269,14 @@ export class Decoder {
   }
 
   private readExport() {
-    const module = this.read() as Atom;
-    const func = this.read() as Atom;
-    const arity = this.read() as number;
+    const module = this.read();
+    const func = this.read();
+    const arity = this.read();
     return {
       module,
       func,
       arity,
-      toString: () => `&:${module.value}.${func.value}/${arity}`,
+      toString: () => `&:${module}.${func}/${arity}`,
     } as IExport;
   }
 
@@ -284,7 +291,7 @@ export class Decoder {
       term === SMALL_ATOM_EXT;
     const isUTF8 = term === ATOM_UTF8_EXT || term === SMALL_ATOM_UTF8_EXT;
     const length = (isAnySmallAtom) ? this.readUInt8() : this.readUInt16();
-    return new Atom(this.readString(length), isUTF8);
+    return this.readString(length);
   }
 
   private readString(length: number) {
