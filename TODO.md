@@ -11,8 +11,8 @@ External Term Format encoding and decoding for deno
 - [x] PORT_EXT
 - [x] NEW_PORT_EXT
 - [x] V4_PORT_EXT
-- [ ] PID_EXT
-- [ ] NEW_PID_EXT
+- [x] PID_EXT
+- [x] NEW_PID_EXT
 - [ ] SMALL_TUPLE_EXT
 - [ ] LARGE_TUPLE_EXT
 - [ ] MAP_EXT
