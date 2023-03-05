@@ -8,10 +8,9 @@ import {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.178.0/testing/asserts.ts";
+import { IPort } from "../lib/Structs/types.d.ts";
 
 import { decode } from "../mod.ts";
-import { Port, PortTerm } from "../lib/Structs/Port.ts";
-import { Pid, PidTerm } from "../lib/Structs/Pid.ts";
 
 const __dirname = dirname(fromFileUrl(import.meta.url));
 const encoded_data_dir = join(__dirname, "..", "..", "encoded_data");
@@ -28,58 +27,53 @@ Deno.test("Decoder", async (t) => {
   await t.step("decode SMALL_INTEGER_EXT", () => {
     const encoded = getEncodedData("SMALL_INTEGER_EXT");
     const decoded = decode(encoded);
-    assert(decoded === 255);
+    assertEquals(decoded, 255);
   });
 
   await t.step("decode INTEGER_EXT", () => {
     const encoded = getEncodedData("INTEGER_EXT");
     const decoded = decode(encoded);
-    assert(decoded === 2 ** 10);
+    assertEquals(decoded, 2 ** 10);
   });
 
   await t.step("decode FLOAT_EXT", () => {
     const encoded = getEncodedData("FLOAT_EXT");
     const decoded = decode(encoded);
-    assert(decoded === 3.14);
+    assertEquals(decoded, 3.14);
   });
 
   await t.step("decode PORT_EXT", () => {
     const encoded = getEncodedData("PORT_EXT");
-    const decoded = decode(encoded) as Port;
+    const decoded = decode(encoded);
 
-    assert(decoded.toString() === "#Port<0.5>");
-    assert(decoded.term === PortTerm.PORT_EXT);
+    assertEquals(decoded.toString(), "#Port<0.5>");
   });
 
   await t.step("decode NEW_PORT_EXT", () => {
     const encoded = getEncodedData("NEW_PORT_EXT");
-    const decoded = decode(encoded) as Port;
+    const decoded = decode(encoded);
 
-    assert(decoded.toString() === "#Port<0.5>");
-    assert(decoded.term === PortTerm.NEW_PORT_EXT);
+    assertEquals(decoded.toString(), "#Port<0.5>");
   });
 
   await t.step("decode V4_PORT_EXT", () => {
     const encoded = getEncodedData("V4_PORT_EXT");
-    const decoded = decode(encoded) as Port;
+    const decoded = decode(encoded) as IPort;
 
-    assert(decoded.toString() === "#Port<0.5>");
-    assert(decoded.term === PortTerm.V4_PORT_EXT);
-    assert(decoded.id === 5n);
+    assertEquals(decoded.toString(), "#Port<0.5>");
+    assertEquals(decoded.id, 5n);
   });
 
   await t.step("decode PID_EXT", () => {
     const encoded = getEncodedData("PID_EXT");
-    const decoded = decode(encoded) as Pid;
-    assert(decoded.toString() === "#PID<0.106.0>");
-    assert(decoded.term === PidTerm.PID_EXT);
+    const decoded = decode(encoded);
+    assertEquals(decoded.toString(), "#PID<0.106.0>");
   });
 
   await t.step("decode NEW_PID_EXT", () => {
     const encoded = getEncodedData("NEW_PID_EXT");
-    const decoded = decode(encoded) as Pid;
-    assert(decoded.toString() === "#PID<0.106.0>");
-    assert(decoded.term === PidTerm.NEW_PID_EXT);
+    const decoded = decode(encoded);
+    assertEquals(decoded.toString(), "#PID<0.106.0>");
   });
 
   await t.step("decode SMALL_TUPLE_EXT", () => {
@@ -97,13 +91,14 @@ Deno.test("Decoder", async (t) => {
   await t.step("decode NIL_EXT", () => {
     const encoded = getEncodedData("NIL_EXT");
     const decoded = decode(encoded) as never[];
-    assert(decoded.length === 0 && Array.isArray(decoded));
+    assert(Array.isArray(decoded));
+    assertEquals(decoded.length, 0);
   });
 
   await t.step("decode STRING_EXT", () => {
     const encoded = getEncodedData("STRING_EXT");
     const decoded = decode(encoded) as unknown as string;
-    assert(decoded === "Hello World");
+    assertEquals(decoded, "Hello World");
   });
 
   await t.step("decode LIST_EXT", () => {
@@ -113,7 +108,7 @@ Deno.test("Decoder", async (t) => {
   await t.step("decode BINARY_EXT", () => {
     const encoded = getEncodedData("BINARY_EXT");
     const decoded = decode(encoded) as string;
-    assert(decoded === "Hello World");
+    assertEquals(decoded, "Hello World");
   });
 
   await t.step("decode SMALL_BIG_EXT", () => {
