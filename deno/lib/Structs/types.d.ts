@@ -4,12 +4,6 @@ interface IToString {
   toString: () => string;
 }
 
-export interface IReference extends IToString {
-  node: Atom;
-  id: number;
-  creation: number;
-}
-
 export interface IPort extends IToString {
   node: Atom;
   id: number | bigint;
@@ -20,5 +14,11 @@ export interface IPid extends IToString {
   node: Atom;
   id: number;
   serial: number;
+  creation: number;
+}
+
+export interface IReference extends IToString {
+  node: Atom;
+  id: number | number[];
   creation: number;
 }
