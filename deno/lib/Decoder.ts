@@ -6,6 +6,7 @@ import {
   ETF_VERSION,
   FLOAT_EXT,
   INTEGER_EXT,
+  LARGE_BIG_EXT,
   NEW_PID_EXT,
   NEW_PORT_EXT,
   NIL_EXT,
@@ -13,6 +14,7 @@ import {
   PORT_EXT,
   SMALL_ATOM_EXT,
   SMALL_ATOM_UTF8_EXT,
+  SMALL_BIG_EXT,
   SMALL_INTEGER_EXT,
   STRING_EXT,
   V4_PORT_EXT,
@@ -48,6 +50,7 @@ export class Decoder {
    */
   private nativeDecode() {
     const term = this.readUInt8();
+
     switch (term) {
       case SMALL_INTEGER_EXT:
         return this.readUInt8();
@@ -74,6 +77,20 @@ export class Decoder {
       case BINARY_EXT: {
         const length = this.readUInt32();
         return this.readString(length);
+      }
+      case SMALL_BIG_EXT:
+      case LARGE_BIG_EXT: {
+        const isSmall = term === SMALL_BIG_EXT;
+        const length = isSmall ? this.readUInt8() : this.readUInt32();
+        const sign = this.readUInt8();
+        let value = 0n, b = 1n;
+
+        for (let i = 0; i < length; i++) {
+          value += BigInt(this.readInt8()) * b;
+          b <<= 8n;
+        }
+
+        return sign === 0 ? value : -value;
       }
 
       default:
