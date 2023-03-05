@@ -121,7 +121,7 @@ Deno.test("Decoder", async (t) => {
     const encoded = getEncodedData("MAP_EXT");
     const decoded = decode(encoded) as Record<string, unknown>;
     assertEquals(decoded, {
-      atom: new Atom("atom", false),
+      atom: "atom",
       list: ["Hello", "World", 2 ** 10],
       number: 2 ** 10,
       string: "Hello World",
@@ -197,10 +197,10 @@ Deno.test("Decoder", async (t) => {
     assertEquals(decoded.uniq, "065361aa461590d1bdf1eb62d1a6eb08");
     assertEquals(decoded.index, 38);
     assertEquals(decoded.numFree, 1);
-    assertEquals(decoded.module, new Atom("erl_eval", false));
+    assertEquals(decoded.module, "erl_eval");
     assertEquals(decoded.oldIndex, 38);
     assertEquals(decoded.oldUniq, 3316493);
-    assertEquals(pid.node, new Atom("nonode@nohost", false));
+    assertEquals(pid.node, "nonode@nohost");
     assertEquals(pid.id, 106);
     assertEquals(pid.serial, 0);
     assertEquals(pid.creation, 0);
@@ -227,29 +227,62 @@ Deno.test("Decoder", async (t) => {
 
   await t.step("decode ATOM_UTF8_EXT", () => {
     const encoded = getEncodedData("ATOM_UTF8_EXT");
-    const decoded = decode(encoded) as Atom;
-    assertEquals(decoded.toString(), ":atom");
-    assert(decoded.isUTF8);
+    const decoded = decode(encoded);
+    assertEquals(decoded, "atom");
   });
 
   await t.step("decode SMALL_ATOM_UTF8_EXT", () => {
     const encoded = getEncodedData("SMALL_ATOM_UTF8_EXT");
-    const decoded = decode(encoded) as Atom;
-    assertEquals(decoded.toString(), ":atom");
-    assert(decoded.isUTF8);
+    const decoded = decode(encoded) as string;
+    assertEquals(decoded, "atom");
   });
 
   await t.step("decode ATOM_EXT", () => {
     const encoded = getEncodedData("ATOM_EXT");
-    const decoded = decode(encoded) as Atom;
-    assertEquals(decoded.toString(), ":atom");
-    assert(!decoded.isUTF8);
+    const decoded = decode(encoded);
+    assertEquals(decoded, "atom");
   });
 
   await t.step("decode SMALL_ATOM_EXT", () => {
     const encoded = getEncodedData("SMALL_ATOM_EXT");
-    const decoded = decode(encoded) as Atom;
-    assertEquals(decoded.toString(), ":atom");
-    assert(!decoded.isUTF8);
+    const decoded = decode(encoded) as string;
+    assertEquals(decoded, "atom");
+  });
+
+  await t.step("decode null, undefined, boolean, NaN and Infinity", () => {
+    const encoder = new TextEncoder();
+    const NULL = new Uint8Array([131, 100, 0, 4, ...encoder.encode("null")]);
+    const NULL_WITH_NIL = new Uint8Array([
+      131,
+      100,
+      0,
+      3,
+      ...encoder.encode("nil"),
+    ]);
+    const UNDEFINED = new Uint8Array([
+      131,
+      100,
+      0,
+      9,
+      ...encoder.encode("undefined"),
+    ]);
+    const TRUE = new Uint8Array([131, 100, 0, 4, ...encoder.encode("true")]);
+    const FALSE = new Uint8Array([131, 100, 0, 5, ...encoder.encode("false")]);
+    const NAN = new Uint8Array([131, 100, 0, 3, ...encoder.encode("NaN")]);
+    const INFINITY = new Uint8Array([
+      131,
+      100,
+      0,
+      8,
+      ...encoder.encode("Infinity"),
+    ]);
+
+    assertEquals(decode(NULL), null);
+    assertEquals(decode(NULL_WITH_NIL), null);
+    assertEquals(decode(UNDEFINED), undefined);
+    assertEquals(decode(TRUE), true);
+    assertEquals(decode(FALSE), false);
+    assertEquals(decode(NAN), NaN);
+    assertEquals(decode(INFINITY), Infinity);
   });
 });
