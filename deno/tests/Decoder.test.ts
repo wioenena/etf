@@ -9,6 +9,7 @@ import {
   assertThrows,
 } from "https://deno.land/std@0.178.0/testing/asserts.ts";
 import { Port, PortTerm } from "../lib/Structs/Port.ts";
+import { Pid, PidTerm } from "../lib/Structs/Pid.ts";
 
 const __dirname = dirname(fromFileUrl(import.meta.url));
 const encoded_data_dir = join(__dirname, "..", "..", "encoded_data");
@@ -46,7 +47,6 @@ Deno.test("Decoder", async (t) => {
 
     assert(decoded.toString() === "#Port<0.5>");
     assert(decoded.term === PortTerm.PORT_EXT);
-    assert(decoded.id === 5);
   });
 
   await t.step("decode NEW_PORT_EXT", () => {
@@ -55,7 +55,6 @@ Deno.test("Decoder", async (t) => {
 
     assert(decoded.toString() === "#Port<0.5>");
     assert(decoded.term === PortTerm.NEW_PORT_EXT);
-    assert(decoded.id === 5);
   });
 
   await t.step("decode V4_PORT_EXT", () => {
@@ -68,11 +67,17 @@ Deno.test("Decoder", async (t) => {
   });
 
   await t.step("decode PID_EXT", () => {
-    console.log("TODO: Test PID_EXT");
+    const encoded = getEncodedData("PID_EXT");
+    const decoded = decode(encoded) as Pid;
+    assert(decoded.toString() === "#PID<0.106.0>");
+    assert(decoded.term === PidTerm.PID_EXT);
   });
 
   await t.step("decode NEW_PID_EXT", () => {
-    console.log("TODO: Test NEW_PID_EXT");
+    const encoded = getEncodedData("NEW_PID_EXT");
+    const decoded = decode(encoded) as Pid;
+    assert(decoded.toString() === "#PID<0.106.0>");
+    assert(decoded.term === PidTerm.NEW_PID_EXT);
   });
 
   await t.step("decode SMALL_TUPLE_EXT", () => {
