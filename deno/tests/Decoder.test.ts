@@ -1,4 +1,3 @@
-import { decode } from "../mod.ts";
 import {
   dirname,
   fromFileUrl,
@@ -6,8 +5,11 @@ import {
 } from "https://deno.land/std@0.178.0/path/mod.ts";
 import {
   assert,
+  assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.178.0/testing/asserts.ts";
+
+import { decode } from "../mod.ts";
 import { Port, PortTerm } from "../lib/Structs/Port.ts";
 import { Pid, PidTerm } from "../lib/Structs/Pid.ts";
 
@@ -115,11 +117,17 @@ Deno.test("Decoder", async (t) => {
   });
 
   await t.step("decode SMALL_BIG_EXT", () => {
-    console.log("TODO: Test SMALL_BIG_EXT");
+    const encodedPositive = getEncodedData("SMALL_BIG_EXT");
+    const encodedNegative = getEncodedData("NEGATIVE_SMALL_BIG_EXT");
+    assertEquals(decode(encodedPositive), 2n ** 32n);
+    assertEquals(decode(encodedNegative), -(2n ** 32n));
   });
 
   await t.step("decode LARGE_BIG_EXT", () => {
-    console.log("TODO: Test LARGE_BIG_EXT");
+    const encodedPositive = getEncodedData("LARGE_BIG_EXT");
+    const encodedNegative = getEncodedData("NEGATIVE_LARGE_BIG_EXT");
+    assertEquals(decode(encodedPositive), 2n ** 10000n);
+    assertEquals(decode(encodedNegative), -(2n ** 10000n));
   });
 
   await t.step("decode REFERENCE_EXT", () => {
