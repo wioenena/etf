@@ -1,4 +1,10 @@
 import {
+  AnyAtom,
+  AnyBigNumber,
+  AnyPid,
+  AnyPort,
+  AnyReference,
+  AnyTuple,
   ATOM_EXT,
   ATOM_UTF8_EXT,
   BINARY_EXT,
@@ -30,9 +36,13 @@ import {
   V4_PORT_EXT,
 } from "./Constants.ts";
 import { Atom } from "./Structs/Atom.ts";
-import { IPid, IPort, IReference } from "./Structs/types.d.ts";
-
-const NOT_IMPLEMENTED = "Not implemented";
+import {
+  IExport,
+  INewFun,
+  IPid,
+  IPort,
+  IReference,
+} from "./Structs/types.d.ts";
 
 export class Decoder {
   private buffer = new Uint8Array(0);
@@ -71,43 +81,16 @@ export class Decoder {
         return parseFloat(this.readString(31));
       case PORT_EXT:
       case NEW_PORT_EXT:
-      case V4_PORT_EXT: {
-        const isPortExt = term === PORT_EXT;
-        const isNewPortExt = term === NEW_PORT_EXT;
-        const node = this.read() as Atom;
-        const id = (isPortExt || isNewPortExt)
-          ? this.readUInt32()
-          : this.readBigUint64();
-        const creation = (isPortExt) ? this.readUInt8() : this.readUInt32();
-
-        return {
-          node,
-          id,
-          creation,
-          toString: () => `#Port<${creation}.${id}>`,
-        } as IPort;
-      }
+      case V4_PORT_EXT:
+        return this.readAnyPort(term);
       case PID_EXT:
-      case NEW_PID_EXT: {
-        const isNewPid = term === NEW_PID_EXT;
-        const node = this.read() as Atom;
-        const id = this.readUInt32();
-        const serial = this.readUInt32();
-        const creation = isNewPid ? this.readUInt32() : this.readUInt8();
-
-        return {
-          node,
-          id,
-          serial,
-          creation,
-          toString: () => `#PID<${creation}.${id}.${serial}>`,
-        } as IPid;
-      }
+      case NEW_PID_EXT:
+        return this.readAnyPid(term);
       case SMALL_TUPLE_EXT:
       case LARGE_TUPLE_EXT:
-        return NOT_IMPLEMENTED;
+        return this.readAnyTuple(term);
       case MAP_EXT:
-        return NOT_IMPLEMENTED;
+        return this.readMap();
       case NIL_EXT:
         return [];
       case STRING_EXT: {
@@ -115,75 +98,193 @@ export class Decoder {
         return this.readString(length);
       }
       case LIST_EXT:
-        return NOT_IMPLEMENTED;
-      case BINARY_EXT: {
-        const length = this.readUInt32();
-        return this.readString(length);
-      }
+        return this.readList();
+      case BINARY_EXT:
+        return this.readBinary();
       case SMALL_BIG_EXT:
-      case LARGE_BIG_EXT: {
-        const isSmall = term === SMALL_BIG_EXT;
-        const length = isSmall ? this.readUInt8() : this.readUInt32();
-        const sign = this.readUInt8();
-        let value = 0n, b = 1n;
-
-        for (let i = 0; i < length; i++) {
-          value += BigInt(this.readInt8()) * b;
-          b <<= 8n;
-        }
-
-        return sign === 0 ? value : -value;
-      }
+      case LARGE_BIG_EXT:
+        return this.readAnyBigNumber(term);
       case REFERENCE_EXT:
       case NEW_REFERENCE_EXT:
-      case NEWER_REFERENCE_EXT: {
-        if (term === REFERENCE_EXT) {
-          const node = this.read() as Atom;
-          const id = this.readUInt32();
-          const creation = this.readUInt8();
-          return {
-            node,
-            id,
-            creation,
-            toString: () => `#Reference<${creation}.0.0.${id}>`,
-          } as IReference;
-        } else {
-          const length = this.readUInt16();
-          const node = this.read() as Atom;
-          const creation = term === NEWER_REFERENCE_EXT
-            ? this.readUInt32()
-            : this.readUInt8();
-          const ids = Array.from({ length }, () => this.readUInt32()).reverse();
-          return {
-            node,
-            id: ids,
-            creation,
-            toString: () => `#Reference<${creation}.${ids.join(".")}>`,
-          } as IReference;
-        }
-      }
+      case NEWER_REFERENCE_EXT:
+        return this.readAnyReference(term);
       case NEW_FUN_EXT:
-        return NOT_IMPLEMENTED;
+        return this.readNewFun();
       case EXPORT_EXT:
-        return NOT_IMPLEMENTED;
+        return this.readExport();
       case BIT_BINARY_EXT:
-        return NOT_IMPLEMENTED;
+        return this.readBitBinary();
       case NEW_FLOAT_EXT:
-        return NOT_IMPLEMENTED;
+        return this.readFloat64();
       case ATOM_UTF8_EXT:
       case SMALL_ATOM_UTF8_EXT:
       case ATOM_EXT:
-      case SMALL_ATOM_EXT: {
-        const isAnySmallAtom = term === SMALL_ATOM_UTF8_EXT ||
-          term === SMALL_ATOM_EXT;
-        const isUTF8 = term === ATOM_UTF8_EXT || term === SMALL_ATOM_UTF8_EXT;
-        const length = (isAnySmallAtom) ? this.readUInt8() : this.readUInt16();
-        return new Atom(this.readString(length), isUTF8);
-      }
-
+      case SMALL_ATOM_EXT:
+        return this.readAnyAtom(term);
       default:
         throw new Error(`Unsupported term: ${term}`);
     }
+  }
+
+  private readAnyPort(term: AnyPort) {
+    const isPortExt = term === PORT_EXT;
+    const isNewPortExt = term === NEW_PORT_EXT;
+    const node = this.read() as Atom;
+    const id = (isPortExt || isNewPortExt)
+      ? this.readUInt32()
+      : this.readBigUint64();
+    const creation = (isPortExt) ? this.readUInt8() : this.readUInt32();
+
+    return {
+      node,
+      id,
+      creation,
+      toString: () => `#Port<${creation}.${id}>`,
+    } as IPort;
+  }
+
+  private readAnyPid(term: AnyPid) {
+    const isNewPid = term === NEW_PID_EXT;
+    const node = this.read() as Atom;
+    const id = this.readUInt32();
+    const serial = this.readUInt32();
+    const creation = isNewPid ? this.readUInt32() : this.readUInt8();
+
+    return {
+      node,
+      id,
+      serial,
+      creation,
+      toString: () => `#PID<${creation}.${id}.${serial}>`,
+    } as IPid;
+  }
+
+  private readAnyTuple(
+    term: AnyTuple,
+  ): DecodedData[] {
+    const isSmall = term === SMALL_TUPLE_EXT;
+    const length = isSmall ? this.readUInt8() : this.readUInt32();
+    return Array.from({ length }, () => this.read());
+  }
+
+  private readMap() {
+    const o = {} as Record<string, DecodedData>;
+    const length = this.readInt32();
+
+    for (let i = 0; i < length; i++) {
+      const key = this.read() as string;
+      o[key] = this.read();
+    }
+    return o;
+  }
+
+  private readList() {
+    const length = this.readUInt32();
+    const list = Array.from({ length }, () => this.read()) as DecodedData[];
+    this.offset++; // skip NIL_EXT
+    return list;
+  }
+
+  private readBinary() {
+    const length = this.readUInt32();
+    return this.readString(length);
+  }
+
+  private readAnyBigNumber(term: AnyBigNumber) {
+    const isSmall = term === SMALL_BIG_EXT;
+    const length = isSmall ? this.readUInt8() : this.readUInt32();
+    const sign = this.readUInt8();
+    let value = 0n, b = 1n;
+
+    for (let i = 0; i < length; i++) {
+      value += BigInt(this.readInt8()) * b;
+      b <<= 8n;
+    }
+
+    return sign === 0 ? value : -value;
+  }
+
+  readAnyReference(term: AnyReference) {
+    if (term === REFERENCE_EXT) {
+      const node = this.read() as Atom;
+      const id = this.readUInt32();
+      const creation = this.readUInt8();
+      return {
+        node,
+        id,
+        creation,
+        toString: () => `#Reference<${creation}.0.0.${id}>`,
+      } as IReference;
+    } else {
+      const length = this.readUInt16();
+      const node = this.read() as Atom;
+      const creation = term === NEWER_REFERENCE_EXT
+        ? this.readUInt32()
+        : this.readUInt8();
+      const ids = Array.from({ length }, () => this.readUInt32()).reverse();
+      return {
+        node,
+        id: ids,
+        creation,
+        toString: () => `#Reference<${creation}.${ids.join(".")}>`,
+      } as IReference;
+    }
+  }
+
+  private readNewFun() {
+    const size = this.readUInt32();
+    const arity = this.readUInt8();
+    const uniq = Array.from(
+      { length: 16 },
+      () => this.readUInt8().toString(16).padStart(2, "0"),
+    ).join("");
+    const index = this.readUInt32();
+    const numFree = this.readUInt32();
+    const module = this.read() as Atom;
+    const oldIndex = this.read() as number;
+    const oldUniq = this.read() as number;
+    const pid = this.read() as IPid;
+    const freeVars = this.read() as DecodedData[];
+
+    return {
+      size,
+      arity,
+      uniq,
+      index,
+      numFree,
+      module,
+      oldIndex,
+      oldUniq,
+      pid,
+      freeVars,
+      toString: () => `#Function<${oldIndex}.${oldUniq}/${arity}>`,
+    } as INewFun;
+  }
+
+  private readExport() {
+    const module = this.read() as Atom;
+    const func = this.read() as Atom;
+    const arity = this.read() as number;
+    return {
+      module,
+      func,
+      arity,
+      toString: () => `&:${module.value}.${func.value}/${arity}`,
+    } as IExport;
+  }
+
+  private readBitBinary() {
+    const length = this.readUInt32();
+    this.offset++; // skip Bits
+    return Array.from({ length }, () => this.readUInt8());
+  }
+
+  private readAnyAtom(term: AnyAtom) {
+    const isAnySmallAtom = term === SMALL_ATOM_UTF8_EXT ||
+      term === SMALL_ATOM_EXT;
+    const isUTF8 = term === ATOM_UTF8_EXT || term === SMALL_ATOM_UTF8_EXT;
+    const length = (isAnySmallAtom) ? this.readUInt8() : this.readUInt16();
+    return new Atom(this.readString(length), isUTF8);
   }
 
   private readString(length: number) {
@@ -265,4 +366,6 @@ export type DecodedData =
   | Atom
   | IPort
   | IPid
-  | IReference;
+  | IReference
+  | INewFun
+  | IExport;
