@@ -2,6 +2,7 @@ import {
   ATOM_EXT,
   ATOM_UTF8_EXT,
   AtomTerms,
+  BINARY_EXT,
   ETF_VERSION,
   FLOAT_EXT,
   INTEGER_EXT,
@@ -70,6 +71,11 @@ export class Decoder {
         const length = this.readUInt16();
         return this.readString(length);
       }
+      case BINARY_EXT: {
+        const length = this.readUInt32();
+        return this.readString(length);
+      }
+
       default:
         throw new Error(`Unsupported term: ${term}`);
     }
