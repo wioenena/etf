@@ -1,40 +1,4 @@
-import {
-  AnyAtom,
-  AnyBigNumber,
-  AnyPid,
-  AnyPort,
-  AnyReference,
-  AnyTuple,
-  ATOM_EXT,
-  ATOM_UTF8_EXT,
-  BINARY_EXT,
-  BIT_BINARY_EXT,
-  ETF_VERSION,
-  EXPORT_EXT,
-  FLOAT_EXT,
-  INTEGER_EXT,
-  LARGE_BIG_EXT,
-  LARGE_TUPLE_EXT,
-  LIST_EXT,
-  MAP_EXT,
-  NEW_FLOAT_EXT,
-  NEW_FUN_EXT,
-  NEW_PID_EXT,
-  NEW_PORT_EXT,
-  NEW_REFERENCE_EXT,
-  NEWER_REFERENCE_EXT,
-  NIL_EXT,
-  PID_EXT,
-  PORT_EXT,
-  REFERENCE_EXT,
-  SMALL_ATOM_EXT,
-  SMALL_ATOM_UTF8_EXT,
-  SMALL_BIG_EXT,
-  SMALL_INTEGER_EXT,
-  SMALL_TUPLE_EXT,
-  STRING_EXT,
-  V4_PORT_EXT,
-} from "./Constants.ts";
+import * as Constants from "./Constants.ts";
 import { Atom } from "./Structs/Atom.ts";
 import {
   IExport,
@@ -59,7 +23,9 @@ export class Decoder {
     this.view = new DataView(this.buffer.buffer);
     this.offset = 0;
     const VERSION = this.readUInt8();
-    if (VERSION !== ETF_VERSION) throw new Error("Invalid ETF version");
+    if (VERSION !== Constants.ETF_VERSION) {
+      throw new Error("Invalid ETF version");
+    }
     const decoded = this.read();
     this.reset();
     return decoded;
@@ -73,53 +39,53 @@ export class Decoder {
     const term = this.readUInt8();
 
     switch (term) {
-      case SMALL_INTEGER_EXT:
+      case Constants.SMALL_INTEGER_EXT:
         return this.readUInt8();
-      case INTEGER_EXT:
+      case Constants.INTEGER_EXT:
         return this.readInt32();
-      case FLOAT_EXT:
+      case Constants.FLOAT_EXT:
         return parseFloat(this.readString(31));
-      case PORT_EXT:
-      case NEW_PORT_EXT:
-      case V4_PORT_EXT:
+      case Constants.PORT_EXT:
+      case Constants.NEW_PORT_EXT:
+      case Constants.V4_PORT_EXT:
         return this.readAnyPort(term);
-      case PID_EXT:
-      case NEW_PID_EXT:
+      case Constants.PID_EXT:
+      case Constants.NEW_PID_EXT:
         return this.readAnyPid(term);
-      case SMALL_TUPLE_EXT:
-      case LARGE_TUPLE_EXT:
+      case Constants.SMALL_TUPLE_EXT:
+      case Constants.LARGE_TUPLE_EXT:
         return this.readAnyTuple(term);
-      case MAP_EXT:
+      case Constants.MAP_EXT:
         return this.readMap();
-      case NIL_EXT:
+      case Constants.NIL_EXT:
         return [];
-      case STRING_EXT: {
+      case Constants.STRING_EXT: {
         const length = this.readUInt16();
         return this.readString(length);
       }
-      case LIST_EXT:
+      case Constants.LIST_EXT:
         return this.readList();
-      case BINARY_EXT:
+      case Constants.BINARY_EXT:
         return this.readBinary();
-      case SMALL_BIG_EXT:
-      case LARGE_BIG_EXT:
+      case Constants.SMALL_BIG_EXT:
+      case Constants.LARGE_BIG_EXT:
         return this.readAnyBigNumber(term);
-      case REFERENCE_EXT:
-      case NEW_REFERENCE_EXT:
-      case NEWER_REFERENCE_EXT:
+      case Constants.REFERENCE_EXT:
+      case Constants.NEW_REFERENCE_EXT:
+      case Constants.NEWER_REFERENCE_EXT:
         return this.readAnyReference(term);
-      case NEW_FUN_EXT:
+      case Constants.NEW_FUN_EXT:
         return this.readNewFun();
-      case EXPORT_EXT:
+      case Constants.EXPORT_EXT:
         return this.readExport();
-      case BIT_BINARY_EXT:
+      case Constants.BIT_BINARY_EXT:
         return this.readBitBinary();
-      case NEW_FLOAT_EXT:
+      case Constants.NEW_FLOAT_EXT:
         return this.readFloat64();
-      case ATOM_UTF8_EXT:
-      case SMALL_ATOM_UTF8_EXT:
-      case ATOM_EXT:
-      case SMALL_ATOM_EXT: {
+      case Constants.ATOM_UTF8_EXT:
+      case Constants.SMALL_ATOM_UTF8_EXT:
+      case Constants.ATOM_EXT:
+      case Constants.SMALL_ATOM_EXT: {
         const atom = this.readAnyAtom(term);
         if (atom === "nil" || atom === "null") return null;
         else if (atom === "undefined") return undefined;
@@ -133,9 +99,9 @@ export class Decoder {
     }
   }
 
-  private readAnyPort(term: AnyPort) {
-    const isPortExt = term === PORT_EXT;
-    const isNewPortExt = term === NEW_PORT_EXT;
+  private readAnyPort(term: Constants.AnyPort) {
+    const isPortExt = term === Constants.PORT_EXT;
+    const isNewPortExt = term === Constants.NEW_PORT_EXT;
     const node = this.read();
     const id = (isPortExt || isNewPortExt)
       ? this.readUInt32()
@@ -150,8 +116,8 @@ export class Decoder {
     } as IPort;
   }
 
-  private readAnyPid(term: AnyPid) {
-    const isNewPid = term === NEW_PID_EXT;
+  private readAnyPid(term: Constants.AnyPid) {
+    const isNewPid = term === Constants.NEW_PID_EXT;
     const node = this.read();
     const id = this.readUInt32();
     const serial = this.readUInt32();
@@ -167,9 +133,9 @@ export class Decoder {
   }
 
   private readAnyTuple(
-    term: AnyTuple,
+    term: Constants.AnyTuple,
   ): DecodedData[] {
-    const isSmall = term === SMALL_TUPLE_EXT;
+    const isSmall = term === Constants.SMALL_TUPLE_EXT;
     const length = isSmall ? this.readUInt8() : this.readUInt32();
     return Array.from({ length }, () => this.read());
   }
@@ -197,8 +163,8 @@ export class Decoder {
     return this.readString(length);
   }
 
-  private readAnyBigNumber(term: AnyBigNumber) {
-    const isSmall = term === SMALL_BIG_EXT;
+  private readAnyBigNumber(term: Constants.AnyBigNumber) {
+    const isSmall = term === Constants.SMALL_BIG_EXT;
     const length = isSmall ? this.readUInt8() : this.readUInt32();
     const sign = this.readUInt8();
     let value = 0n, b = 1n;
@@ -211,8 +177,8 @@ export class Decoder {
     return sign === 0 ? value : -value;
   }
 
-  readAnyReference(term: AnyReference) {
-    if (term === REFERENCE_EXT) {
+  readAnyReference(term: Constants.AnyReference) {
+    if (term === Constants.REFERENCE_EXT) {
       const node = this.read();
       const id = this.readUInt32();
       const creation = this.readUInt8();
@@ -225,7 +191,7 @@ export class Decoder {
     } else {
       const length = this.readUInt16();
       const node = this.read();
-      const creation = term === NEWER_REFERENCE_EXT
+      const creation = term === Constants.NEWER_REFERENCE_EXT
         ? this.readUInt32()
         : this.readUInt8();
       const ids = Array.from({ length }, () => this.readUInt32()).reverse();
@@ -286,9 +252,9 @@ export class Decoder {
     return Array.from({ length }, () => this.readUInt8());
   }
 
-  private readAnyAtom(term: AnyAtom) {
-    const isAnySmallAtom = term === SMALL_ATOM_UTF8_EXT ||
-      term === SMALL_ATOM_EXT;
+  private readAnyAtom(term: Constants.AnyAtom) {
+    const isAnySmallAtom = term === Constants.SMALL_ATOM_UTF8_EXT ||
+      term === Constants.SMALL_ATOM_EXT;
     const length = (isAnySmallAtom) ? this.readUInt8() : this.readUInt16();
     return this.readString(length);
   }
