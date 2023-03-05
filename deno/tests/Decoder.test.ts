@@ -99,7 +99,9 @@ Deno.test("Decoder", async (t) => {
   });
 
   await t.step("decode STRING_EXT", () => {
-    console.log("TODO: Test STRING_EXT");
+    const encoded = getEncodedData("STRING_EXT");
+    const decoded = decode(encoded) as unknown as string;
+    assert(decoded === "Hello World");
   });
 
   await t.step("decode LIST_EXT", () => {
