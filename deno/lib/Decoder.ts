@@ -31,7 +31,7 @@ export class Decoder {
     this.offset = 0;
     const VERSION = this.readUInt8();
     if (VERSION !== ETF_VERSION) throw new Error("Invalid ETF version");
-    const decoded = this.nativeDecode(data);
+    const decoded = this.nativeDecode();
     this.reset();
     return decoded;
   }
@@ -40,7 +40,7 @@ export class Decoder {
    * For recursive calls to decode.
    * @param data Data to decode.
    */
-  private nativeDecode(data: Uint8Array) {
+  private nativeDecode() {
     const term = this.readUInt8();
     switch (term) {
       case SMALL_INTEGER_EXT:
