@@ -352,3 +352,21 @@ export const ATOM_EXT = 100;
  * @see {@link https://www.erlang.org/doc/apps/erts/erl_ext_dist.html#small_atom_ext} For more information
  */
 export const SMALL_ATOM_EXT = 115;
+
+export type AnyPort =
+  | typeof PORT_EXT
+  | typeof NEW_PORT_EXT
+  | typeof V4_PORT_EXT;
+
+export type AnyPid = typeof PID_EXT | typeof NEW_PID_EXT;
+export type AnyTuple = typeof SMALL_TUPLE_EXT | typeof LARGE_TUPLE_EXT;
+export type AnyBigNumber = typeof SMALL_BIG_EXT | typeof LARGE_BIG_EXT;
+export type AnyReference =
+  | typeof REFERENCE_EXT
+  | typeof NEW_REFERENCE_EXT
+  | typeof NEWER_REFERENCE_EXT;
+export type AnyAtom =
+  | typeof ATOM_UTF8_EXT
+  | typeof SMALL_ATOM_UTF8_EXT
+  | typeof ATOM_EXT
+  | typeof SMALL_ATOM_EXT;
