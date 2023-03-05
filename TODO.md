@@ -16,12 +16,12 @@ External Term Format encoding and decoding for deno
 - [ ] SMALL_TUPLE_EXT
 - [ ] LARGE_TUPLE_EXT
 - [ ] MAP_EXT
-- [ ] NIL_EXT
-- [ ] STRING_EXT
+- [x] NIL_EXT
+- [x] STRING_EXT
 - [ ] LIST_EXT
-- [ ] BINARY_EXT
-- [ ] SMALL_BIG_EXT
-- [ ] LARGE_BIG_EXT
+- [x] BINARY_EXT
+- [x] SMALL_BIG_EXT
+- [x] LARGE_BIG_EXT
 - [ ] NEW_REFERENCE_EXT
 - [ ] NEWER_REFERENCE_EXT
 - [ ] FUN_EXT
