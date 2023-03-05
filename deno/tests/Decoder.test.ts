@@ -109,7 +109,9 @@ Deno.test("Decoder", async (t) => {
   });
 
   await t.step("decode BINARY_EXT", () => {
-    console.log("TODO: Test BINARY_EXT");
+    const encoded = getEncodedData("BINARY_EXT");
+    const decoded = decode(encoded) as string;
+    assert(decoded === "Hello World");
   });
 
   await t.step("decode SMALL_BIG_EXT", () => {
