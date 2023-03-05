@@ -5,7 +5,9 @@ import {
   ETF_VERSION,
   FLOAT_EXT,
   INTEGER_EXT,
+  NEW_PID_EXT,
   NEW_PORT_EXT,
+  PID_EXT,
   PORT_EXT,
   SMALL_ATOM_EXT,
   SMALL_ATOM_UTF8_EXT,
@@ -13,6 +15,7 @@ import {
   V4_PORT_EXT,
 } from "./Constants.ts";
 import { Atom, AtomTerm } from "./Structs/Atom.ts";
+import { Pid, PidTerm } from "./Structs/Pid.ts";
 import { Port, PortTerm } from "./Structs/Port.ts";
 
 export class Decoder {
@@ -55,6 +58,10 @@ export class Decoder {
         return this.readNewPortExt();
       case V4_PORT_EXT:
         return this.readV4PortExt();
+      case PID_EXT:
+        return this.readPidExt();
+      case NEW_PID_EXT:
+        return this.readNewPidExt();
       default:
         throw new Error(`Unsupported term: ${term}`);
     }
@@ -84,6 +91,24 @@ export class Decoder {
     return new Port(node, id, creation, PortTerm.V4_PORT_EXT);
   }
 
+  private readPidExt() {
+    const atomTerm = this.readUInt8();
+    const node = this.detectAtom(atomTerm as AtomTerms);
+    const id = this.readUInt32();
+    const serial = this.readUInt32();
+    const creation = this.readUInt8();
+    return new Pid(node, id, serial, creation);
+  }
+
+  private readNewPidExt() {
+    const atomTerm = this.readUInt8();
+    const node = this.detectAtom(atomTerm as AtomTerms);
+    const id = this.readUInt32();
+    const serial = this.readUInt32();
+    const creation = this.readUInt32();
+    return new Pid(node, id, serial, creation, PidTerm.NEW_PID_EXT);
+  }
+
   private readString(length: number) {
     const value = this.textDecoder.decode(
       this.buffer.slice(this.offset, this.offset + length),
@@ -107,22 +132,22 @@ export class Decoder {
 
   private readUTF8AtomExt() {
     const length = this.readUInt16();
-    return new Atom(this.readString(length), AtomTerm.ATOM_UTF8);
+    return new Atom(this.readString(length), AtomTerm.ATOM_UTF8_EXT);
   }
 
   private readSmallUTF8AtomExt() {
     const length = this.readUInt8();
-    return new Atom(this.readString(length), AtomTerm.SMALL_ATOM_UTF8);
+    return new Atom(this.readString(length), AtomTerm.SMALL_ATOM_UTF8_EXT);
   }
 
   private readAtomExt() {
     const length = this.readUInt16();
-    return new Atom(this.readString(length), AtomTerm.ATOM);
+    return new Atom(this.readString(length), AtomTerm.ATOM_EXT);
   }
 
   private readSmallAtomExt() {
     const length = this.readUInt8();
-    return new Atom(this.readString(length), AtomTerm.SMALL_ATOM);
+    return new Atom(this.readString(length), AtomTerm.SMALL_ATOM_EXT);
   }
 
   private reset() {
