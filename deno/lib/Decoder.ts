@@ -289,7 +289,6 @@ export class Decoder {
   private readAnyAtom(term: AnyAtom) {
     const isAnySmallAtom = term === SMALL_ATOM_UTF8_EXT ||
       term === SMALL_ATOM_EXT;
-    const isUTF8 = term === ATOM_UTF8_EXT || term === SMALL_ATOM_UTF8_EXT;
     const length = (isAnySmallAtom) ? this.readUInt8() : this.readUInt16();
     return this.readString(length);
   }
