@@ -22,8 +22,9 @@ External Term Format encoding and decoding for deno
 - [x] BINARY_EXT
 - [x] SMALL_BIG_EXT
 - [x] LARGE_BIG_EXT
-- [ ] NEW_REFERENCE_EXT
-- [ ] NEWER_REFERENCE_EXT
+- [x] REFERENCE_EXT
+- [x] NEW_REFERENCE_EXT
+- [x] NEWER_REFERENCE_EXT
 - [ ] FUN_EXT
 - [ ] NEW_FUN_EXT
 - [ ] EXPORT_EXT
