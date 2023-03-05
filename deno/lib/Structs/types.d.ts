@@ -1,24 +1,22 @@
-import { Atom } from "./Atom.ts";
-
 interface IToString {
   toString: () => string;
 }
 
 export interface IPort extends IToString {
-  node: Atom;
+  node: string;
   id: number | bigint;
   creation: number;
 }
 
 export interface IPid extends IToString {
-  node: Atom;
+  node: string;
   id: number;
   serial: number;
   creation: number;
 }
 
 export interface IReference extends IToString {
-  node: Atom;
+  node: string;
   id: number | number[];
   creation: number;
 }
@@ -29,7 +27,7 @@ export interface INewFun extends IToString {
   uniq: string;
   index: number;
   numFree: number;
-  module: Atom;
+  module: string;
   oldIndex: number;
   oldUniq: number;
   pid: IPid;
@@ -37,7 +35,7 @@ export interface INewFun extends IToString {
 }
 
 export interface IExport extends IToString {
-  module: Atom;
-  func: Atom;
+  module: string;
+  func: string;
   arity: number;
 }
