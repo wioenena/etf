@@ -37,8 +37,9 @@ External Term Format encoding and decoding for deno
 
 ### Atoms built for javascript
 
-- [ ] null
-- [ ] undefined
-- [ ] NaN
-- [ ] Infinity
-- [ ] Symbol (maybe)
+- [ ] null (decode: ✓, encode: x)
+- [ ] undefined (decode: ✓, encode: x)
+- [ ] boolean (decode: ✓, encode: x)
+- [ ] NaN (decode: ✓, encode: x)
+- [ ] Infinity (decode: ✓ , encode: x)
+- [ ] Symbol (maybe) (decode: x, encode: x)
