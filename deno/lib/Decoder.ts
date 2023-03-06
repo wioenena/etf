@@ -281,12 +281,6 @@ export class Decoder {
     return this.view.getUint8(this.offset++);
   }
 
-  private readInt16(littleEndian = false) {
-    const value = this.view.getInt16(this.offset, littleEndian);
-    this.offset += 2;
-    return value;
-  }
-
   private readUInt16(littleEndian = false) {
     const value = this.view.getUint16(this.offset, littleEndian);
     this.offset += 2;
@@ -307,12 +301,6 @@ export class Decoder {
 
   private readFloat64(littleEndian = false) {
     const value = this.view.getFloat64(this.offset, littleEndian);
-    this.offset += 8;
-    return value;
-  }
-
-  private readBigInt64(littleEndian = false) {
-    const value = this.view.getBigInt64(this.offset, littleEndian);
     this.offset += 8;
     return value;
   }
