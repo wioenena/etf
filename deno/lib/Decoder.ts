@@ -170,7 +170,7 @@ export class Decoder {
     let value = 0n, b = 1n;
 
     for (let i = 0; i < length; i++) {
-      value += BigInt(this.readInt8()) * b;
+      value += BigInt(this.readUInt8()) * b;
       b <<= 8n;
     }
 
