@@ -179,11 +179,6 @@ export class Encoder {
     this.offset += 8;
   }
 
-  private setBigUInt64(value: bigint, littleEndian = false) {
-    this.view.setBigUint64(this.offset, value, littleEndian);
-    this.offset += 8;
-  }
-
   private expandBuffer(size: number) {
     const old = this.buffer;
     this.buffer = new Uint8Array(old.length + size);
