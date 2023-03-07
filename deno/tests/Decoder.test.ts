@@ -8,7 +8,6 @@ import {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.178.0/testing/asserts.ts";
-import { Atom } from "../lib/Structs/Atom.ts";
 import {
   IExport,
   INewFun,
