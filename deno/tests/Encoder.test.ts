@@ -47,4 +47,10 @@ Deno.test("Encoder", async (t) => {
     assertEquals(decode(encodeFloat), Math.PI);
     assertEquals(decode(encodeLargeNumber), Number.MAX_SAFE_INTEGER);
   });
+
+  await t.step("encode bigint", () => {
+    const encoded = encode(255n);
+    assertEquals(encoded[1], Constants.LARGE_BIG_EXT);
+    assertEquals(decode(encoded), 255n);
+  });
 });
