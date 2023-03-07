@@ -65,4 +65,14 @@ Deno.test("Encoder", async (t) => {
     assertEquals(encoded[1], Constants.LIST_EXT);
     assertEquals(decode(encoded), [1, 2, 3]);
   });
+
+  await t.step("encode object", () => {
+    const encoded = encode({ Hello: "World", number: 1, array: [1, 2, 3] });
+    assertEquals(encoded[1], Constants.MAP_EXT);
+    assertEquals(decode(encoded), {
+      Hello: "World",
+      number: 1,
+      array: [1, 2, 3],
+    });
+  });
 });
