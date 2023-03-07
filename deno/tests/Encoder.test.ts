@@ -32,4 +32,19 @@ Deno.test("Encoder", async (t) => {
     assertEquals(decode(encodedTrue), true);
     assertEquals(decode(encodedFalse), false);
   });
+
+  await t.step("encode number", () => {
+    const encodedUInt8 = encode(255);
+    const encodedInt32 = encode(65535);
+    const encodeFloat = encode(Math.PI);
+    const encodeLargeNumber = encode(Number.MAX_SAFE_INTEGER);
+    assertEquals(encodedUInt8[1], Constants.SMALL_INTEGER_EXT);
+    assertEquals(encodedInt32[1], Constants.INTEGER_EXT);
+    assertEquals(encodeFloat[1], Constants.NEW_FLOAT_EXT);
+    assertEquals(encodeLargeNumber[1], Constants.NEW_FLOAT_EXT);
+    assertEquals(decode(encodedUInt8), 255);
+    assertEquals(decode(encodedInt32), 65535);
+    assertEquals(decode(encodeFloat), Math.PI);
+    assertEquals(decode(encodeLargeNumber), Number.MAX_SAFE_INTEGER);
+  });
 });
