@@ -81,4 +81,16 @@ Deno.test("Encoder", async (t) => {
     assertEquals(encoded[1], Constants.NIL_EXT);
     assertEquals(decode(encoded), []);
   });
+
+  await t.step("encode NaN", () => {
+    const encoded = encode(NaN);
+    assertEquals(encoded[1], Constants.ATOM_EXT);
+    assertEquals(decode(encoded), NaN);
+  });
+
+  await t.step("encode Infinity", () => {
+    const encoded = encode(Infinity);
+    assertEquals(encoded[1], Constants.ATOM_EXT);
+    assertEquals(decode(encoded), Infinity);
+  });
 });
