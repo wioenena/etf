@@ -116,6 +116,7 @@ export class Encoder {
   private writeList(value: unknown[]) {
     this.expandBuffer(5 + value.length); // 4 + (1 for nil)
     this.setUInt8(Constants.LIST_EXT);
+    this.setUInt32(value.length);
     for (const item of value) this.write(item);
     this.setUInt8(Constants.NIL_EXT);
   }
