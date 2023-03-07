@@ -53,4 +53,10 @@ Deno.test("Encoder", async (t) => {
     assertEquals(encoded[1], Constants.LARGE_BIG_EXT);
     assertEquals(decode(encoded), 255n);
   });
+
+  await t.step("encode string", () => {
+    const encoded = encode("hello");
+    assertEquals(encoded[1], Constants.BINARY_EXT);
+    assertEquals(decode(encoded), "hello");
+  });
 });
