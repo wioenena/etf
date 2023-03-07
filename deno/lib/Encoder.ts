@@ -20,7 +20,7 @@ export class Encoder {
   }
 
   /**
-   * Write ETF version. [131]
+   * Write ETF version.
    */
   private writeVersion() {
     this.expandBuffer(1);
