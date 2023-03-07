@@ -23,4 +23,13 @@ Deno.test("Encoder", async (t) => {
     assertEquals(encoded[1], Constants.ATOM_EXT);
     assertEquals(decode(encoded), undefined);
   });
+
+  await t.step("encode boolean", () => {
+    const encodedTrue = encode(true);
+    const encodedFalse = encode(false);
+    assertEquals(encodedTrue[1], Constants.ATOM_EXT);
+    assertEquals(encodedFalse[1], Constants.ATOM_EXT);
+    assertEquals(decode(encodedTrue), true);
+    assertEquals(decode(encodedFalse), false);
+  });
 });
