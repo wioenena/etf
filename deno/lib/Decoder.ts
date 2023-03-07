@@ -15,7 +15,7 @@ export class Decoder {
   private readonly textDecoder = new TextDecoder();
 
   /**
-   * Decodes data.
+   * Decode a data with ETF format.
    * @param data Data to decode.
    */
   public decode(data: Uint8Array) {
@@ -312,7 +312,10 @@ export class Decoder {
   }
 }
 
-export const decode = (data: Uint8Array) => new Decoder().decode(data);
+export const decode = (() => {
+  const decoder = new Decoder();
+  return (data: Uint8Array) => decoder.decode(data);
+})();
 
 export type DecodedData =
   | string
