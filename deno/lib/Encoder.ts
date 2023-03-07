@@ -64,9 +64,9 @@ export class Encoder {
   }
 
   private writeAnyNumber(value: number) {
-    if (!Number.isInteger(value)) this.writeFloat(value);
-    else if (Number.isNaN(value)) this.writeAtom(new Atom("NaN"));
+    if (Number.isNaN(value)) this.writeAtom(new Atom("NaN"));
     else if (!Number.isFinite(value)) this.writeAtom(new Atom("Infinity"));
+    else if (!Number.isInteger(value)) this.writeFloat(value);
     else if ((value) >= (0x0) && (value) <= 0xFF) {
       this.writeSmallInt(value); /* Only unsigned 8-bit integer */
     } else if ((value) >= (-0x80000000) && (value) <= 0x7FFFFFFF) {
