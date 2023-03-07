@@ -177,7 +177,7 @@ export class Decoder {
     return sign === 0 ? value : -value;
   }
 
-  readAnyReference(term: Constants.AnyReference) {
+  private readAnyReference(term: Constants.AnyReference) {
     if (term === Constants.REFERENCE_EXT) {
       const node = this.read();
       const id = this.readUInt32();
@@ -271,10 +271,6 @@ export class Decoder {
     this.buffer = new Uint8Array(0);
     this.view = new DataView(this.buffer.buffer);
     this.offset = 0;
-  }
-
-  private readInt8() {
-    return this.view.getInt8(this.offset++);
   }
 
   private readUInt8() {
