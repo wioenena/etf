@@ -75,4 +75,10 @@ Deno.test("Encoder", async (t) => {
       array: [1, 2, 3],
     });
   });
+
+  await t.step("encode nil ext", () => {
+    const encoded = encode([]);
+    assertEquals(encoded[1], Constants.NIL_EXT);
+    assertEquals(decode(encoded), []);
+  });
 });
