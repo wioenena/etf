@@ -17,4 +17,10 @@ Deno.test("Encoder", async (t) => {
     assertEquals(decode(encodedWithUTF8), "my_atom");
     assertEquals(decode(encodedWithoutUTF8), "my_atom");
   });
+
+  await t.step("encode undefined", () => {
+    const encoded = encode(undefined);
+    assertEquals(encoded[1], Constants.ATOM_EXT);
+    assertEquals(decode(encoded), undefined);
+  });
 });
