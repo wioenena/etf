@@ -9,26 +9,27 @@ import {
 } from "./Structs/types.d.ts";
 
 export class Decoder {
-  private buffer = new Uint8Array(0);
-  private view = new DataView(this.buffer.buffer);
+  private buffer;
+  private view;
   private offset = 0;
   private readonly textDecoder = new TextDecoder();
+
+  public constructor(data: Uint8Array) {
+    this.buffer = data;
+    this.view = new DataView(this.buffer.buffer);
+  }
 
   /**
    * Decode a data with ETF format.
    * @param data Data to decode.
    */
-  public decode(data: Uint8Array) {
-    this.buffer = data;
-    this.view = new DataView(this.buffer.buffer);
-    this.offset = 0;
+  public decode() {
     const VERSION = this.readUInt8();
+
     if (VERSION !== Constants.ETF_VERSION) {
       throw new Error("Invalid ETF version");
     }
-    const decoded = this.read();
-    this.reset();
-    return decoded;
+    return this.read();
   }
 
   /**
@@ -153,8 +154,12 @@ export class Decoder {
 
   private readList() {
     const length = this.readUInt32();
-    const list = Array.from({ length }, () => this.read()) as DecodedData[];
-    this.offset++; // skip NIL_EXT
+    const list = [] as unknown[];
+    for (let i = 0; i < length; i++) {
+      list.push(this.read());
+    }
+    const nil = this.readUInt8();
+    if (nil !== Constants.NIL_EXT) throw new Error("Invalid list");
     return list;
   }
 
@@ -267,7 +272,7 @@ export class Decoder {
     return value;
   }
 
-  private reset() {
+  public reset() {
     this.buffer = new Uint8Array(0);
     this.view = new DataView(this.buffer.buffer);
     this.offset = 0;
@@ -308,10 +313,7 @@ export class Decoder {
   }
 }
 
-export const decode = (() => {
-  const decoder = new Decoder();
-  return (data: Uint8Array) => decoder.decode(data);
-})();
+export const decode = (data: Uint8Array) => new Decoder(data).decode();
 
 export type DecodedData =
   | string
