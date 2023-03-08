@@ -19,7 +19,7 @@ import {
 import { decode } from "../mod.ts";
 
 const __dirname = dirname(fromFileUrl(import.meta.url));
-const encoded_data_dir = join(__dirname, "..", "..", "encoded_data");
+const encoded_data_dir = join(__dirname, "..", "encoded_data");
 
 function getEncodedData(filename: string): Uint8Array {
   return Deno.readFileSync(join(encoded_data_dir, filename));
